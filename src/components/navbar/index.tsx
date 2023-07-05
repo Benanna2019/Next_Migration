@@ -1,13 +1,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
-import {
-  FullFakebooksLogo,
-  UpRightArrowIcon,
-  LogoutIcon,
-  SpinnerIcon,
-} from '..'
+import { UpRightArrowIcon, SpinnerIcon, FilePlusIcon } from '..'
 import { SignOut } from '../login'
+import { UploadCompanyLogo } from '../modal/upload-logo-dialog'
+import { LogoRenderer } from '../logo-renderer'
 
 export default function Navbar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -16,11 +13,7 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
     <div className="relative flex h-screen rounded-lg bg-white text-gray-600">
       <div className="border-r border-gray-100 bg-gray-50">
         <div className="p-4">
-          <div className="flex flex-wrap items-center gap-1">
-            <Link href=".">
-              <FullFakebooksLogo size="sm" position="left" />
-            </Link>
-          </div>
+          <LogoRenderer />
           <div className="h-7" />
           <div className="flex flex-col font-bold text-gray-800">
             <NavItem to="/dashboard" isActive={pathname === '/dashboard'}>
@@ -38,6 +31,15 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             <NavItem to="/reports" isActive={pathname === '/reports'}>
               Reports
             </NavItem>
+            <div>
+              <UploadCompanyLogo
+                trigger={
+                  <span className="my-1 flex gap-1 py-1 px-2 pr-16 text-[length:14px]">
+                    <FilePlusIcon /> <span>Upload Logo</span>
+                  </span>
+                }
+              />
+            </div>
             <a
               href="https://github.com/benanna2019/invoice-app-rsc"
               className="my-1 flex gap-1 py-1 px-2 pr-16 text-[length:14px]"

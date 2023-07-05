@@ -15,6 +15,42 @@ export function LabelText({ children }: { children: React.ReactNode }) {
   )
 }
 
+export function FullUserLogo({
+  size,
+  position,
+  url,
+}: {
+  size: 'sm' | 'lg'
+  position: 'left' | 'center'
+  url: string
+}) {
+  const [logoSize, textSize] = {
+    sm: [`h-4 w-4`, `text-d-p-sm`],
+    lg: [`h-12 w-12`, `text-d-h2`],
+  }[size]
+  return (
+    <div
+      className={`flex items-center ${
+        position === 'center' ? 'justify-center' : ''
+      } text-[color:#23BF1F]`}
+    >
+      <UserLogo className={`w-2/5 ${logoSize}`} url={url} />
+      {/* <div className="w-1" />
+      <div className={`font-display ${textSize}`}>User</div> */}
+    </div>
+  )
+}
+
+export function UserLogo({
+  className,
+  url,
+}: {
+  className: string
+  url: string
+}) {
+  return <img src={url} className={className} alt="User Logo" />
+}
+
 export function FullFakebooksLogo({
   size,
   position,

@@ -62,3 +62,5 @@ export function validateLineItemUnitPrice(unitPrice: number) {
   }
   return null
 }
+
+export const fetcher = (url: string) => fetch(url).then((res) => res.json())
