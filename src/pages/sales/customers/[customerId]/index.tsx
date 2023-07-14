@@ -9,9 +9,9 @@ import CustomerLayout from '@/components/customer-layout'
 import Layout from '@/components/layouts'
 import SalesNav from '@/components/sales-nav'
 import { useQuery } from '@tanstack/react-query'
+import { fetcher } from '@/utils'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-export default function CustomerIdLayout({
+export default function CustomerIdRoute({
   data,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter()
