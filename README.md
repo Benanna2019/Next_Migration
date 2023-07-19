@@ -1,39 +1,63 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next_Migration
+
+This project is a Nextjs example of Kent C Dodd's Frontend Masters Advanced Remix Workshop project.
+
+The aim of this project and course is to take a large project using the traditional Nextjs pages architecture and migrate the full project to use the new app directory architecture.
 
 ## Getting Started
 
-First, run the development server:
+First, fork this repo. Once that is complete clone it.
+
+You will need a couple environment variables to be able to run this project effectively. You should have the following variables
+
+- `DATABASE_URL`=
+- `OAUTH_CLIENT_ID`=
+- `OAUTH_CLIENT_SECRET`=
+- `NEXTAUTH_URL`=
+- `NEXTAUTH_SECRET`=
+- `UPLOADTHING_SECRET`=
+
+For our Database the project is using [Planetscale](https://planetscale.com). Setting up an account is really easy and creating your first database is free.
+
+- When you create a new database remember the password that you set, you will need it for the connection string.
+- If you forget your password and get to the step below and cannot find it, you can generate a new password.
+- Once you've created your database click go to your dashboard, click on the new database you created and then on the right side you will see a button labeled `Get connnection strings`. Click that and then where it says `Connect With` there is a drop down, make sure you select the `Prisma` option
+
+For our local development OAuth information, we are using Github OAuth. To set up OAuth:
+
+- go to github
+- select settings
+- at the bottom of settings you will see `Developer Settings`. Select that
+- then select `'OAuth Apps'`
+- click the button that says `'New OAuth App'`
+- You will be asked to provide `Application Name`, `Homepage URL`, and `Authorization callback URL`
+  - For application name choose any that you would like.
+  - For Homepage URL put `http://localhost:3000`
+  - For the Authorization callback URL we can put `http://localhost:3000/api/auth/callback/github`
+- Click `Register Application` and on the next screen you will see a `CLIENT_ID` and there will be no `CLIENT_SECRET` yet.
+  - Grab the `CLIENT_ID` and add it to the `OAUTH_CLIENT_ID` environment variable
+  - Next generate the `CLIENT_SECRET` and then grab that value and add it to the `OAUTH_CLIENT_SECRET` environment variable
+
+For our NEXT_AUTH_URL and NEXT_AUTH_SECRET,
+
+- The `NEXT_AUTH_URL` value is `http://localhost:3000`
+- For our `NEXT_AUTH_SECRET` value, we need to run this command, `openssl rand -base64 32`, in the terminal which will generate a string that you can grab and put into the value
+
+Now we have all the environment variables we need to get started, we need to init prisma and push our schema to the database.
+
+- First run `npx prisma init`
+- Then run `npx prisma db push`. This will push our models to our planetscale db
+
+Now that we have everything we need, you can run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+There are many routes that result in a 404 or just an empty page. Start by going clicking on `Sales` in the sidebar navigation.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+You will be promted to login and this will utilize our Github OAuth app that we just setup. After you login and are redirected click `Sales`. Then click on `Customers`.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+On this page you will be able to create a new customer and start creating entries in the database.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-# Next_Migration
+And so we begin....
