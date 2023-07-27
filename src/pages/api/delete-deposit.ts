@@ -4,7 +4,6 @@ import { authOptions } from './auth/[...nextauth]'
 import { deleteDeposit } from '@/models/depositserver'
 
 import invariant from 'tiny-invariant'
-import { redirect } from 'next/navigation'
 import { findInvoiceByDepositId } from '@/models/invoiceserver'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {

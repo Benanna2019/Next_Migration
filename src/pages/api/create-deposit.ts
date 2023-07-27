@@ -15,7 +15,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { invoiceId, intent, formAmount, formDepositDate, formNote } = req.body
+  const { invoiceId, intent, formAmount, formDepositDate, formNote } =
+    JSON.parse(req.body)
 
   if (typeof invoiceId !== 'string') {
     throw new Error('This should be impossible.')

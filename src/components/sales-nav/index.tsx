@@ -1,19 +1,19 @@
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/router'
 
 const linkClassName = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'font-bold text-black' : ''
 
 export default function SalesNav({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  if (!pathname) {
+  const router = useRouter()
+  if (!router.pathname) {
     throw new Error(
       'You should never reach this error but if you do, pathname is undefined. Contact site owner'
     )
   }
-  const invoiceMatches = pathname.includes('/sales/invoices')
+  const invoiceMatches = router.pathname.includes('/sales/invoices')
 
-  const customerMatches = pathname.includes('/sales/customers')
+  const customerMatches = router.pathname.includes('/sales/customers')
 
   return (
     <div className="relative h-full p-10">
@@ -22,14 +22,14 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
       <div className="flex gap-4 border-b border-gray-100 pb-4 text-[length:14px] font-medium text-gray-400">
         <Link
           href="."
-          className={linkClassName({ isActive: pathname === '/' })}
+          className={linkClassName({ isActive: router.pathname === '/' })}
         >
           Overview
         </Link>
         <Link
           href="/sales/subscriptions"
           className={linkClassName({
-            isActive: pathname === '/sales/subscriptions',
+            isActive: router.pathname === '/sales/subscriptions',
           })}
         >
           Subscriptions
@@ -50,7 +50,7 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
         <Link
           href="/sales/deposits"
           className={linkClassName({
-            isActive: pathname === '/sales/deposits',
+            isActive: router.pathname === '/sales/deposits',
           })}
         >
           Deposits

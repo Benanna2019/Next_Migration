@@ -1,5 +1,5 @@
 import prisma from '@/utils/dbserver'
-import type { Customer } from '@prisma/client'
+import type { Customer, User } from '@prisma/client'
 import { getInvoiceDerivedData } from './invoiceserver'
 
 export type { Customer }
@@ -84,6 +84,9 @@ export async function getCustomerDetails(customerId: string) {
 export async function createCustomer({
   name,
   email,
-}: Pick<Customer, 'name' | 'email'>) {
-  return prisma.customer.create({ data: { email, name } })
+  user_email,
+}: Pick<Customer, 'name' | 'email'> & { user_email: User['email'] }) {
+  return prisma.customer.create({
+    data: { email, name, user: { connect: { email: user_email as string } } },
+  })
 }

@@ -1,9 +1,11 @@
 import Layout from '@/components/layouts'
 
-export default function Home() {
-  return (
-    <Layout>
-      <h1>Home Page</h1>
-    </Layout>
-  )
+function Home() {
+  return <h1>Home Page</h1>
 }
+
+Home.getLayout = function getLayout(page: React.ReactNode) {
+  return <Layout>{page}</Layout>
+}
+
+export default Home

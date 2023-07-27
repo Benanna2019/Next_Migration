@@ -11,40 +11,41 @@ import SalesNav from '@/components/sales-nav'
 import { useQuery } from '@tanstack/react-query'
 import { fetcher } from '@/utils'
 
-export default function CustomerIdRoute({
-  data,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+function CustomerIdRoute() {
   const router = useRouter()
   const customerId = router.query.customerId
 
-  const customerData = useQuery(['customer', customerId], () =>
+  const customerQueryData = useQuery(['customer', customerId], () =>
     fetcher(`/api/get-customer/${customerId}`)
   )
+  return <CustomerIdPage customerInfo={customerQueryData} />
+}
 
+CustomerIdRoute.getLayout = function getLayout(page: React.ReactNode) {
   return (
     <Layout>
       <SalesNav>
-        <CustomerLayout customers={data.customers}>
-          <CustomerIdPage customerData={customerData} />
-        </CustomerLayout>
+        <CustomerLayout>{page}</CustomerLayout>
       </SalesNav>
     </Layout>
   )
 }
 
-export async function getServerSideProps(
-  context: GetServerSidePropsContext & { params: { customerId: string } }
-) {
-  const user = await getServerSession(context.req, context.res, authOptions)
-  if (!user) {
-    redirect('/login')
-  }
-  const customers = await getCustomerListItems()
+export default CustomerIdRoute
 
-  const data = { customers }
-  return {
-    props: {
-      data,
-    },
-  }
-}
+// export async function getServerSideProps(
+//   context: GetServerSidePropsContext & { params: { customerId: string } }
+// ) {
+//   const user = await getServerSession(context.req, context.res, authOptions)
+//   if (!user) {
+//     redirect('/login')
+//   }
+//   const customers = await getCustomerListItems()
+
+//   const data = { customers }
+//   return {
+//     props: {
+//       data,
+//     },
+//   }
+// }

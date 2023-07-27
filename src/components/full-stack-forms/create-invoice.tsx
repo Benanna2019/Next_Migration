@@ -5,10 +5,11 @@ import {
   PlusIcon,
   MinusIcon,
   submitButtonClasses,
+  FilePlusIcon,
 } from '@/components'
 // import { CustomerCombobox } from "@/app/resources/customers";
 import { Customer } from '@/models/customerserver'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   useForm,
   FormProvider,
@@ -18,6 +19,15 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/router'
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../../../shadui/ui/dialog'
 
 const generateRandomId = () => Math.random().toString(32).slice(2)
 
@@ -40,8 +50,9 @@ export type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function CreateInvoiceForm() {
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
+  const [open, setOpen] = useState<boolean>(false)
+  const router = useRouter()
+
   const methods = useForm<CreateInvoiceFormData>({
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
@@ -66,84 +77,96 @@ export default function CreateInvoiceForm() {
     fetcher('/api/get-customers-list')
   )
 
-  const router = useRouter()
+  const mutation = useMutation({
+    mutationFn: (formData: any) => {
+      return fetch('/api/create-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+    },
+  })
 
   async function _createInvoiceAction(data: CreateInvoiceFormData) {
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    setLoading(true)
-    const response = await fetch('/api/create-invoice', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    const result = await response.json()
-    console.log('result', result)
-    if (result.status !== 200) {
-      setError(null)
-    }
+    const sendInvoice = await mutation.mutateAsync(data)
+    const result = await sendInvoice.json()
+    setOpen(false)
     router.push(`/sales/invoices/${result}`)
   }
 
   return (
-    <FormProvider {...methods}>
-      <div className="relative p-10">
-        <h2 className="font-display mb-4">New Invoice</h2>
-        <form
-          onSubmit={handleSubmit(_createInvoiceAction)}
-          className="flex flex-col gap-4"
-        >
-          {/* <CustomerCombobox error={actionData?.errors.customerId} /> */}
-          <div className="relative">
-            <div className="flex flex-wrap items-center gap-1">
-              <label htmlFor="customers">
-                <LabelText>Customer</LabelText>
-              </label>
-              {isLoading && <span>Loading...</span>}
-              {data && (
-                <select {...register('customerId')} id="customerId">
-                  {data?.customers?.map((customer: Customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-          {/* Replace all bracketed content with the combobox once that's figured out */}
-          <div>
-            <div className="flex flex-wrap items-center gap-1">
-              <label htmlFor="dueDate">
-                <LabelText>Due Date</LabelText>
-              </label>
-            </div>
-            <input
-              id="dueDate"
-              {...register('invoiceDueDate')}
-              className={inputClasses}
-              type="date"
-              required
-            />
-          </div>
-          <LineItems />
-          <div>
-            <button
-              type="submit"
-              {...register('intent')}
-              value="create"
-              className={submitButtonClasses}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>
+        <span className="flex gap-1">
+          <FilePlusIcon /> <span>Add Invoice</span>
+        </span>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Invoice</DialogTitle>
+          <DialogDescription></DialogDescription>
+        </DialogHeader>
+        <FormProvider {...methods}>
+          <div className="relative p-10">
+            <h2 className="font-display mb-4">New Invoice</h2>
+            <form
+              onSubmit={handleSubmit(_createInvoiceAction)}
+              className="flex flex-col gap-4"
             >
-              Create Invoice
-            </button>
-            {errors.intent && (
-              <span className="text-red-600">{errors.intent.message}</span>
-            )}
+              {/* <CustomerCombobox error={actionData?.errors.customerId} /> */}
+              <div className="relative">
+                <div className="flex flex-wrap items-center gap-1">
+                  <label htmlFor="customers">
+                    <LabelText>Customer</LabelText>
+                  </label>
+                  {isLoading && <span>Loading...</span>}
+                  {data && (
+                    <select {...register('customerId')} id="customerId">
+                      {data?.customers?.map((customer: Customer) => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+              {/* Replace all bracketed content with the combobox once that's figured out */}
+              <div>
+                <div className="flex flex-wrap items-center gap-1">
+                  <label htmlFor="dueDate">
+                    <LabelText>Due Date</LabelText>
+                  </label>
+                </div>
+                <input
+                  id="dueDate"
+                  {...register('invoiceDueDate')}
+                  className={inputClasses}
+                  type="date"
+                  required
+                />
+              </div>
+              <LineItems />
+              <div>
+                <button
+                  type="submit"
+                  {...register('intent')}
+                  value="create"
+                  className={submitButtonClasses}
+                >
+                  Create Invoice
+                </button>
+                {errors.intent && (
+                  <span className="text-red-600">{errors.intent.message}</span>
+                )}
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </FormProvider>
+        </FormProvider>
+      </DialogContent>
+    </Dialog>
   )
 }
 

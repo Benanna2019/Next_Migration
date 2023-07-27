@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import React from 'react'
 import { useRouter } from 'next/router'
+import { useMutation } from '@tanstack/react-query'
 
 const createDepositSchema = z.object({
   formAmount: z.string(),
@@ -16,8 +17,7 @@ const createDepositSchema = z.object({
 type CreateDepositFormData = z.infer<typeof createDepositSchema>
 
 export default function CreateDepositForm({ data }: { data: any }) {
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const [fetchingError, setFetchingError] = React.useState<any>(null)
   const {
     register,
     handleSubmit,
@@ -29,19 +29,21 @@ export default function CreateDepositForm({ data }: { data: any }) {
 
   const router = useRouter()
 
+  const { mutateAsync, error, isError } = useMutation({
+    mutationFn: (formData: any) => {
+      return fetch('/api/create-deposit', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      })
+    },
+  })
+
   async function _createDepositAction(data: CreateDepositFormData) {
     await new Promise((resolve) => setTimeout(resolve, 200))
-    setLoading(true)
-    const response = await fetch('/api/create-deposit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    const result = await response.json()
-    if (result.status !== 200) {
-      setError(null)
+    const result = await mutateAsync(data)
+    const newDeposit = await result.json()
+    if (newDeposit.status !== 200) {
+      setFetchingError(error)
     }
     reset()
     router.push(`/sales/invoices/${data.invoiceId}`)
@@ -81,6 +83,9 @@ export default function CreateDepositForm({ data }: { data: any }) {
           className={`${inputClasses} h-[34px]`}
           required
         />
+        {errors.formDepositDate && (
+          <p className="text-red-500">{errors.formDepositDate.message}</p>
+        )}
         <label htmlFor="invoiceId" className="sr-only" />
         <input
           id="invoiceId"
@@ -88,6 +93,9 @@ export default function CreateDepositForm({ data }: { data: any }) {
           type="hidden"
           value={data.invoiceId}
         />
+        {errors.invoiceId && (
+          <p className="text-red-500">{errors.invoiceId.message}</p>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-4 lg:col-span-2 lg:flex">
         <div className="flex-1">
@@ -100,6 +108,9 @@ export default function CreateDepositForm({ data }: { data: any }) {
             type="text"
             className={inputClasses}
           />
+          {errors.formNote && (
+            <p className="text-red-500">{errors.formNote.message}</p>
+          )}
         </div>
         <div className="flex items-end">
           <button
@@ -111,6 +122,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
             Create
           </button>
         </div>
+        {isError && <p>{fetchingError}</p>}
       </div>
     </form>
   )

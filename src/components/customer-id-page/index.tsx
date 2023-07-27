@@ -1,4 +1,4 @@
-import { currencyFormatter } from '../../utils'
+import { currencyFormatter, fetcher } from '../../utils'
 import Link from 'next/link'
 import { CustomerSkeleton } from '../customer-layout'
 import { useSpinDelay } from 'spin-delay'
@@ -6,13 +6,13 @@ import { useSpinDelay } from 'spin-delay'
 const lineItemClassName = 'border-t border-gray-100 text-[14px] h-[56px]'
 
 export default function CustomerIdPage({
-  customerData,
+  customerInfo,
 }: {
-  customerData: any
+  customerInfo: any
 }) {
-  const { data, isLoading, isError, isSuccess } = customerData
+  const { data, isLoading, isError, isSuccess } = customerInfo
 
-  const showSkeleton = useSpinDelay(Boolean(isLoading))
+  // const showSkeleton = useSpinDelay(Boolean(isLoading))
 
   return (
     <>

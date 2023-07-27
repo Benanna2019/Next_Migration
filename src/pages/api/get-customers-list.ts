@@ -9,5 +9,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(401).send('Unauthorized')
   }
   const customers = await getCustomerListItems()
-  res.status(200).json(customers)
+  res.status(200).json({ customers })
 }

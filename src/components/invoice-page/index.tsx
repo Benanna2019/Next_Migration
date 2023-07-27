@@ -1,22 +1,33 @@
 import Link from 'next/link'
 import { FilePlusIcon, LabelText } from '../index'
-import { currencyFormatter } from '../../utils'
+import { currencyFormatter, fetcher } from '../../utils'
 import { usePathname } from 'next/navigation'
 import { AddInvoiceDialog } from '../modal/add-invoice-dialog'
+import { useQuery } from '@tanstack/react-query'
 
 export default function InvoicesPage({
   children,
-  data,
-  dueSoonPercent,
 }: {
   children?: React.ReactNode
-  data: InvoiceData
-  dueSoonPercent: number
 }) {
+  const { data, isLoading, isError } = useQuery(['invoices'], () =>
+    fetcher('/api/get-invoice-list-items')
+  )
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (isError) {
+    return <div>Error</div>
+  }
+
+  const { allInvoicesData, dueSoonPercent } = data
+
   return (
     <div className="relative">
       <div className="flex items-center justify-between gap-4">
-        <InvoicesInfo label="Overdue" amount={data.overdueAmount} />
+        <InvoicesInfo label="Overdue" amount={allInvoicesData.overdueAmount} />
         <div className="flex h-4 flex-1 overflow-hidden rounded-full">
           <div className="bg-yellow-brand flex-1" />
           <div
@@ -24,12 +35,16 @@ export default function InvoicesPage({
             style={{ width: `${dueSoonPercent}%` }}
           />
         </div>
-        <InvoicesInfo label="Due Soon" amount={data.dueSoonAmount} right />
+        <InvoicesInfo
+          label="Due Soon"
+          amount={allInvoicesData.dueSoonAmount}
+          right
+        />
       </div>
       <div className="h-4" />
       <LabelText>Invoice List</LabelText>
       <div className="h-2" />
-      <InvoiceList invoiceListItems={data.invoiceListItems}>
+      <InvoiceList invoiceListItems={allInvoicesData.invoiceListItems}>
         {children}
       </InvoiceList>
     </div>

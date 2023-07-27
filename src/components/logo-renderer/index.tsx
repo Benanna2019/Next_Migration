@@ -8,19 +8,29 @@ export function LogoRenderer({}) {
     fetcher('/api/get-user-info/')
   )
 
+  console.log('data', data)
+
+  console.log('fetching logo info')
+
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {isLoading && <SpinnerIcon />}
-      {data && data.user.email && (
-        <FullUserLogo size="lg" position="left" url={data.user.logoUrl} />
+      {isLoading ? (
+        <SpinnerIcon />
+      ) : data && data.user?.logoUrl ? (
+        <Link href="/">
+          <FullUserLogo size="lg" position="left" url={data.user.logoUrl} />
+        </Link>
+      ) : (
+        <Link href=".">
+          <FullFakebooksLogo size="sm" position="left" />
+        </Link>
       )}
-      {/* Fallback if there is no user info in the db */}
-      {isError ||
-        (data?.length === 0 && (
-          <Link href=".">
-            <FullFakebooksLogo size="sm" position="left" />
-          </Link>
-        ))}
+      {/* Fallback if there is an error user info in the db */}
+      {/* {isError && (
+        <Link href="/">
+          <FullFakebooksLogo size="sm" position="left" />
+        </Link>
+      )} */}
     </div>
   )
 }

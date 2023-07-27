@@ -1,17 +1,29 @@
 import Link from 'next/link'
-import { FilePlusIcon, InvoiceDetailsFallback } from '../index'
+import { InvoiceDetailsFallback } from '../index'
 import { Customer } from '../../models/customerserver'
 import { usePathname } from 'next/navigation'
-import { AddCustomerDialog } from '../modal/add-customer-dialog'
+import { useQuery } from '@tanstack/react-query'
+import { fetcher } from '@/utils'
+import BetterAddCustomerForm from '../full-stack-forms/add-customer'
 
 export default function CustomerLayout({
-  customers,
   children,
 }: {
-  customers: Pick<Customer, 'email' | 'id' | 'name'>[]
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+
+  const { data, isLoading, isError } = useQuery(['customers'], () =>
+    fetcher('/api/get-customers-list')
+  )
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (isError) {
+    return <div>Error</div>
+  }
 
   const newCustomerPathisActive = pathname === '/sales/customers/newCustomer'
   const individualCustomerPathisActive =
@@ -27,35 +39,29 @@ export default function CustomerLayout({
             (newCustomerPathisActive ? 'bg-gray-50' : '')
           }
         >
-          {
-            <AddCustomerDialog
-              trigger={
-                <span className="flex gap-1">
-                  <FilePlusIcon /> <span>Add Customer</span>
-                </span>
-              }
-            />
-          }
+          <BetterAddCustomerForm />
         </div>
         <div className="max-h-96 overflow-y-scroll">
-          {customers.map((customer) => (
-            <Link
-              key={customer.id}
-              href={`/sales/customers/${customer.id}`}
-              className={
-                'block border-b border-gray-50 py-3 px-4 hover:bg-gray-50' +
-                ' ' +
-                (individualCustomerPathisActive ? 'bg-gray-50' : '')
-              }
-            >
-              <div className="flex justify-between text-[length:14px] font-bold leading-6">
-                <div>{customer.name}</div>
-              </div>
-              <div className="flex justify-between text-[length:12px] font-medium leading-4 text-gray-400">
-                <div>{customer.email}</div>
-              </div>
-            </Link>
-          ))}
+          {data?.customers?.map(
+            (customer: Pick<Customer, 'email' | 'id' | 'name'>) => (
+              <Link
+                key={customer.id}
+                href={`/sales/customers/${customer.id}`}
+                className={
+                  'block border-b border-gray-50 py-3 px-4 hover:bg-gray-50' +
+                  ' ' +
+                  (individualCustomerPathisActive ? 'bg-gray-50' : '')
+                }
+              >
+                <div className="flex justify-between text-[length:14px] font-bold leading-6">
+                  <div>{customer.name}</div>
+                </div>
+                <div className="flex justify-between text-[length:12px] font-medium leading-4 text-gray-400">
+                  <div>{customer.email}</div>
+                </div>
+              </Link>
+            )
+          )}
         </div>
       </div>
       <div className="flex w-1/2 flex-col justify-between">

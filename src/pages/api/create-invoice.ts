@@ -82,5 +82,4 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).json(invoice.id)
     }
   }
-  res.status(404).json(`Unsupported intent: ${intent}`)
 }

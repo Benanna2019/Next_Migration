@@ -1,11 +1,9 @@
-import { FullFakebooksLogo, inputClasses } from '@/components'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/pages/api/auth/[...nextauth]'
-import { SignIn, SignOut } from '@/components/login'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { FullFakebooksLogo } from '@/components'
+import Layout from '@/components/layouts'
+import { SignIn } from '@/components/login'
 import { useSession } from 'next-auth/react'
 
-export default function LoginPage() {
+function LoginPage() {
   const session = useSession()
   console.log('session', session)
   return (
@@ -20,10 +18,8 @@ export default function LoginPage() {
   )
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: {
-      session: await getServerSession(context.req, context.res, authOptions),
-    },
-  }
+LoginPage.getLayout = function getLayout(page: React.ReactNode) {
+  return <Layout>{page}</Layout>
 }
+
+export default LoginPage

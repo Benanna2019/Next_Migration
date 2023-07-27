@@ -9,27 +9,7 @@ export async function getUserById(id: User['id']) {
 }
 
 export async function getUserByEmail(email: User['email']) {
-  return prisma.user.findUnique({ where: { email } })
-}
-
-export async function createUser({
-  email,
-  username,
-  logoUrl,
-}: {
-  email: User['email']
-  username: User['username']
-  logoUrl: User['logoUrl']
-}) {
-  // const hashedPassword = await bcrypt.hash(password, 10)
-
-  return prisma.user.create({
-    data: {
-      email,
-      username,
-      logoUrl,
-    },
-  })
+  return prisma.user.findUnique({ where: { email: email as string } })
 }
 
 export async function updateUser({
@@ -47,8 +27,8 @@ export async function updateUser({
   })
 }
 
-export async function deleteUserByEmail(email: User['email']) {
-  return prisma.user.delete({ where: { email } })
+export async function deleteUserById(id: User['id']) {
+  return prisma.user.delete({ where: { id } })
 }
 
 // export async function verifyLogin(
