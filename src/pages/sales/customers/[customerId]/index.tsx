@@ -1,9 +1,4 @@
-import { getCustomerListItems } from '@/models/customerserver'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/pages/api/auth/[...nextauth]'
-import { redirect } from 'next/navigation'
 import CustomerIdPage from '@/components/customer-id-page'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 import CustomerLayout from '@/components/customer-layout'
 import Layout from '@/components/layouts'
@@ -15,8 +10,10 @@ function CustomerIdRoute() {
   const router = useRouter()
   const customerId = router.query.customerId
 
-  const customerQueryData = useQuery(['customer', customerId], () =>
-    fetcher(`/api/get-customer/${customerId}`)
+  const customerQueryData = useQuery(
+    ['customer', customerId],
+    () => fetcher(`/api/get-customer/${customerId}`),
+    { useErrorBoundary: true, enabled: !!customerId }
   )
   return <CustomerIdPage customerInfo={customerQueryData} />
 }
