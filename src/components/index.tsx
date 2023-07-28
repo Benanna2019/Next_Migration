@@ -186,7 +186,7 @@ export function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function UpRightArrowIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg width={24} height={24} fill="none" {...props}>
+    <svg width={18} height={16} fill="none" {...props}>
       <path
         stroke="currentColor"
         strokeLinecap="round"

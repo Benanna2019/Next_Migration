@@ -34,17 +34,17 @@ export default function Navbar({ children }: { children: React.ReactNode }) {
             <div>
               <UploadCompanyLogo
                 trigger={
-                  <span className="my-1 flex gap-1 py-1 px-2 pr-16 text-[length:14px]">
-                    <FilePlusIcon /> <span>Upload Logo</span>
+                  <span className="my-1 flex gap-1 py-1 px-2 pr-6 text-[length:14px]">
+                    Upload Logo
                   </span>
                 }
               />
             </div>
             <a
-              href="https://github.com/benanna2019/invoice-app-rsc"
-              className="my-1 flex gap-1 py-1 px-2 pr-16 text-[length:14px]"
+              href="https://github.com/benanna2019/Next_Migration"
+              className="my-1 flex justify-between py-1 px-2 pr-6 text-[length:14px]"
             >
-              GitHub <UpRightArrowIcon />
+              Github Repo
             </a>
             <div>
               <SignOut />

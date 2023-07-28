@@ -7,7 +7,7 @@ export function SignOut() {
       className="my-1 py-1 px-2 pr-16 text-[length:14px]"
       onClick={() => signOut({ callbackUrl: '/login' })}
     >
-      → Sign out
+      Sign out
     </button>
   )
 }
