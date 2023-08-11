@@ -1,8 +1,9 @@
-import prisma from '@/utils/dbserver'
-import type { Customer, User } from '@prisma/client'
-import { getInvoiceDerivedData } from './invoiceserver'
+"server only";
+import prisma from "@/utils/dbserver";
+import type { Customer, User } from "@prisma/client";
+import { getInvoiceDerivedData } from "./invoiceserver";
 
-export type { Customer }
+export type { Customer };
 
 export async function searchCustomers(query: string) {
   const customers = await prisma.customer.findMany({
@@ -11,18 +12,18 @@ export async function searchCustomers(query: string) {
       name: true,
       email: true,
     },
-  })
-  const lowerQuery = query.toLowerCase()
+  });
+  const lowerQuery = query.toLowerCase();
   return customers.filter((c) => {
     return (
       c.name.toLowerCase().includes(lowerQuery) ||
       c.email.toLowerCase().includes(lowerQuery)
-    )
-  })
+    );
+  });
 }
 
 export async function getFirstCustomer() {
-  return prisma.customer.findFirst()
+  return prisma.customer.findFirst();
 }
 
 export async function getCustomerListItems() {
@@ -32,20 +33,20 @@ export async function getCustomerListItems() {
       name: true,
       email: true,
     },
-  })
+  });
 }
 
 export async function getCustomerInfo(customerId: string) {
   return prisma.customer.findUnique({
     where: { id: customerId },
     select: { name: true, email: true },
-  })
+  });
 }
 
 export async function getCustomerDetails(customerId: string) {
   await new Promise((resolve) =>
     setTimeout(resolve, Math.random() * 3000 + 1500)
-  )
+  );
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
     select: {
@@ -69,24 +70,24 @@ export async function getCustomerDetails(customerId: string) {
         },
       },
     },
-  })
-  if (!customer) return null
+  });
+  if (!customer) return null;
 
   const invoiceDetails = customer.invoices.map((invoice) => ({
     id: invoice.id,
     number: invoice.number,
     ...getInvoiceDerivedData(invoice),
-  }))
+  }));
 
-  return { name: customer.name, email: customer.email, invoiceDetails }
+  return { name: customer.name, email: customer.email, invoiceDetails };
 }
 
 export async function createCustomer({
   name,
   email,
   user_email,
-}: Pick<Customer, 'name' | 'email'> & { user_email: User['email'] }) {
+}: Pick<Customer, "name" | "email"> & { user_email: User["email"] }) {
   return prisma.customer.create({
     data: { email, name, user: { connect: { email: user_email as string } } },
-  })
+  });
 }

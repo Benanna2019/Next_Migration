@@ -1,10 +1,11 @@
-import { LabelText, inputClasses, submitButtonClasses } from '..'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import React from 'react'
-import { useRouter } from 'next/router'
-import { useMutation } from '@tanstack/react-query'
+"use client";
+import { LabelText, inputClasses, submitButtonClasses } from "..";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import React from "react";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 
 const createDepositSchema = z.object({
   formAmount: z.string(),
@@ -12,12 +13,12 @@ const createDepositSchema = z.object({
   invoiceId: z.string(),
   formNote: z.string(),
   intent: z.string(),
-})
+});
 
-type CreateDepositFormData = z.infer<typeof createDepositSchema>
+type CreateDepositFormData = z.infer<typeof createDepositSchema>;
 
 export default function CreateDepositForm({ data }: { data: any }) {
-  const [fetchingError, setFetchingError] = React.useState<any>(null)
+  const [fetchingError, setFetchingError] = React.useState<any>(null);
   const {
     register,
     handleSubmit,
@@ -25,28 +26,28 @@ export default function CreateDepositForm({ data }: { data: any }) {
     formState: { errors },
   } = useForm<CreateDepositFormData>({
     resolver: zodResolver(createDepositSchema),
-  })
+  });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const { mutateAsync, error, isError } = useMutation({
     mutationFn: (formData: any) => {
-      return fetch('/api/create-deposit', {
-        method: 'POST',
+      return fetch("/api/deposits", {
+        method: "POST",
         body: JSON.stringify(formData),
-      })
+      });
     },
-  })
+  });
 
   async function _createDepositAction(data: CreateDepositFormData) {
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    const result = await mutateAsync(data)
-    const newDeposit = await result.json()
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const result = await mutateAsync(data);
+    const newDeposit = await result.json();
     if (newDeposit.status !== 200) {
-      setFetchingError(error)
+      setFetchingError(error);
     }
-    reset()
-    router.push(`/sales/invoices/${data.invoiceId}`)
+    reset();
+    router.push(`/sales/invoices/${data.invoiceId}`);
   }
 
   return (
@@ -62,7 +63,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
         </div>
         <input
           id="depositAmount"
-          {...register('formAmount')}
+          {...register("formAmount")}
           type="number"
           className={inputClasses}
           min="0.01"
@@ -78,7 +79,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
         </div>
         <input
           id="depositDate"
-          {...register('formDepositDate')}
+          {...register("formDepositDate")}
           type="date"
           className={`${inputClasses} h-[34px]`}
           required
@@ -89,7 +90,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
         <label htmlFor="invoiceId" className="sr-only" />
         <input
           id="invoiceId"
-          {...register('invoiceId')}
+          {...register("invoiceId")}
           type="hidden"
           value={data.invoiceId}
         />
@@ -104,7 +105,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
           </LabelText>
           <input
             id="depositNote"
-            {...register('formNote')}
+            {...register("formNote")}
             type="text"
             className={inputClasses}
           />
@@ -116,7 +117,7 @@ export default function CreateDepositForm({ data }: { data: any }) {
           <button
             type="submit"
             className={submitButtonClasses}
-            {...register('intent')}
+            {...register("intent")}
             value="create-deposit"
           >
             Create
@@ -125,5 +126,5 @@ export default function CreateDepositForm({ data }: { data: any }) {
         {isError && <p>{fetchingError}</p>}
       </div>
     </form>
-  )
+  );
 }
