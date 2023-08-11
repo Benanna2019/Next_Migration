@@ -47,7 +47,7 @@ async function Customers() {
   return (
     <div className="max-h-96 overflow-y-scroll">
       {customers?.map((customer: Pick<Customer, "email" | "id" | "name">) => (
-        <CustomerLink customer={customer}>
+        <CustomerLink key={customer.id} customer={customer}>
           <div className="flex justify-between text-[length:14px] font-bold leading-6">
             <div>{customer.name}</div>
           </div>
