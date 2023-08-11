@@ -1,19 +1,20 @@
-import Link from 'next/link'
-import { useRouter } from 'next/router'
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const linkClassName = ({ isActive }: { isActive: boolean }) =>
-  isActive ? 'font-bold text-black' : ''
+  isActive ? "font-bold text-black" : "";
 
 export default function SalesNav({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  if (!router.pathname) {
+  const pathname = usePathname();
+  if (!pathname) {
     throw new Error(
-      'You should never reach this error but if you do, pathname is undefined. Contact site owner'
-    )
+      "You should never reach this error but if you do, pathname is undefined. Contact site owner"
+    );
   }
-  const invoiceMatches = router.pathname.includes('/sales/invoices')
+  const invoiceMatches = pathname.includes("/sales/invoices");
 
-  const customerMatches = router.pathname.includes('/sales/customers')
+  const customerMatches = pathname.includes("/sales/customers");
 
   return (
     <div className="relative h-full p-10">
@@ -22,14 +23,14 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
       <div className="flex gap-4 border-b border-gray-100 pb-4 text-[length:14px] font-medium text-gray-400">
         <Link
           href="."
-          className={linkClassName({ isActive: router.pathname === '/' })}
+          className={linkClassName({ isActive: pathname === "/" })}
         >
           Overview
         </Link>
         <Link
           href="/sales/subscriptions"
           className={linkClassName({
-            isActive: router.pathname === '/sales/subscriptions',
+            isActive: pathname === "/sales/subscriptions",
           })}
         >
           Subscriptions
@@ -41,7 +42,7 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
           Invoices
         </Link>
         <Link
-          href={'/sales/customers'}
+          href={"/sales/customers"}
           // data.firstCustomerId ? `/sales/customers/${data.firstCustomerId}`:
           className={linkClassName({ isActive: customerMatches })}
         >
@@ -50,7 +51,7 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
         <Link
           href="/sales/deposits"
           className={linkClassName({
-            isActive: router.pathname === '/sales/deposits',
+            isActive: pathname === "/sales/deposits",
           })}
         >
           Deposits
@@ -59,5 +60,5 @@ export default function SalesNav({ children }: { children: React.ReactNode }) {
       <div className="h-4" />
       {children}
     </div>
-  )
+  );
 }

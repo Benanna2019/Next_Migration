@@ -1,20 +1,21 @@
-import { ErrorBoundary } from 'react-error-boundary'
+"use client";
+import { ErrorBoundary } from "react-error-boundary";
 
 function ErrorFallback({ error }: any) {
   return (
     <div role="alert">
       <p>Something went wrong:</p>
-      <pre style={{ color: 'red' }}>{error.message}</pre>
+      <pre style={{ color: "red" }}>{error.message}</pre>
     </div>
-  )
+  );
 }
 
 export function ErrorBoundaryComponent({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>
-  )
+  );
 }

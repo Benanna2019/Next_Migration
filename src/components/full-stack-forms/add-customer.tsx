@@ -1,10 +1,10 @@
-import { FilePlusIcon, inputClasses, LabelText } from '..'
-import { useRouter } from 'next/router'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import * as React from 'react'
-import { useMutation } from '@tanstack/react-query'
+"use client";
+import { FilePlusIcon, inputClasses, LabelText, SpinnerIcon } from "..";
+import { useRouter } from "next/navigation";
+import * as z from "zod";
+import * as React from "react";
+import { addCustomer } from "@/app/actions";
+import { experimental_useFormStatus as useFormStatus } from "react-dom";
 
 import {
   Dialog,
@@ -13,42 +13,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../../../shadui/ui/dialog'
+} from "../../../shadui/ui/dialog";
+import { ErrorBoundaryComponent } from "../error-boundary";
 
 const newCustomerSchema = z.object({
-  name: z.string().nonempty({ message: 'Name is required' }),
-  email: z.string().email({ message: 'Invalid email' }),
-})
-
-type NewCustomerFormData = z.infer<typeof newCustomerSchema>
+  name: z.string().nonempty({ message: "Name is required" }),
+  email: z.string().email().nonempty({ message: "Invalid email" }),
+});
 
 export default function BetterAddCustomerForm() {
-  const [open, setOpen] = React.useState(false)
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<NewCustomerFormData>({
-    resolver: zodResolver(newCustomerSchema),
-  })
-
-  const mutation = useMutation({
-    mutationFn: (formData: any) => {
-      return fetch('/api/add-customer', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-      })
-    },
-  })
-
-  const router = useRouter()
-
-  async function _addCustomerAction(data: NewCustomerFormData) {
-    const result = await mutation.mutateAsync(data)
-    const newCustomer = await result.json()
-    setOpen(false)
-    router.push(`/sales/customers/${newCustomer.id}`)
-  }
+  const [open, setOpen] = React.useState(false);
+  const customerFormRef = React.useRef<any>();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -62,44 +37,60 @@ export default function BetterAddCustomerForm() {
           <DialogTitle>Add a Customer</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className="relative p-10">
-          <h2 className="font-display mb-4">New Customer</h2>
-          <form
-            onSubmit={handleSubmit(_addCustomerAction)}
-            className="flex flex-col gap-4"
-          >
-            <div>
-              <label htmlFor="name">
-                <LabelText>Name</LabelText>
-              </label>
-              <input
-                id="name"
-                className={inputClasses}
-                type="text"
-                {...register('name')}
-              />
-              {errors.name && (
-                <p className="text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="email">
-                <LabelText>Email</LabelText>
-              </label>
-              <input
-                id="email"
-                className={inputClasses}
-                type="email"
-                {...register('email')}
-              />
-            </div>
-            <input type="submit" />
-            {errors.email && (
-              <p className="text-red-500">{errors.email.message}</p>
-            )}
-          </form>
-        </div>
+        <ErrorBoundaryComponent>
+          <div className="relative p-10">
+            <h2 className="font-display mb-4">New Customer</h2>
+            <form
+              action={async (formData) => {
+                const customerForm = Object.fromEntries(formData.entries());
+                // const name = formData.get("name") as string;
+                // const email = formData.get("email") as string;
+                const { name, email } = newCustomerSchema.parse(customerForm);
+                customerFormRef.current.reset;
+
+                await addCustomer(name, email);
+
+                setOpen(false);
+              }}
+              ref={customerFormRef}
+              className="flex flex-col gap-4"
+            >
+              <div>
+                <label htmlFor="name">
+                  <LabelText>Name</LabelText>
+                </label>
+                <input
+                  id="name"
+                  className={inputClasses}
+                  type="text"
+                  name="name"
+                />
+              </div>
+              <div>
+                <label htmlFor="email">
+                  <LabelText>Email</LabelText>
+                </label>
+                <input
+                  id="email"
+                  className={inputClasses}
+                  type="email"
+                  name="email"
+                />
+              </div>
+              <SubmitButton />
+            </form>
+          </div>
+        </ErrorBoundaryComponent>
       </DialogContent>
     </Dialog>
-  )
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button disabled={pending} type="submit">
+      {pending ? <SpinnerIcon /> : "Submit"}
+    </button>
+  );
 }

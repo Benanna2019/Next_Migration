@@ -1,4 +1,5 @@
-import { useState, useId } from 'react'
+"use client";
+import { useId, useRef, useState } from "react";
 import {
   inputClasses,
   LabelText,
@@ -6,19 +7,9 @@ import {
   MinusIcon,
   submitButtonClasses,
   FilePlusIcon,
-} from '@/components'
-// import { CustomerCombobox } from "@/app/resources/customers";
-import { Customer } from '@/models/customerserver'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import {
-  useForm,
-  FormProvider,
-  useFormContext,
-  useFieldArray,
-} from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { useRouter } from 'next/router'
+} from "@/components";
+import { Customer } from "@/models/customerserver";
+import * as z from "zod";
 
 import {
   Dialog,
@@ -27,9 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../../../shadui/ui/dialog'
+} from "../../../shadui/ui/dialog";
+import { addInvoice } from "@/app/actions";
+import { ErrorBoundaryComponent } from "../error-boundary";
 
-const generateRandomId = () => Math.random().toString(32).slice(2)
+const generateRandomId = () => Math.random().toString(32).slice(2);
 
 export const createInvoiceSchema = z.object({
   customerId: z.string(),
@@ -43,58 +36,15 @@ export const createInvoiceSchema = z.object({
     })
   ),
   intent: z.string(),
-})
+});
 
-export type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
-export default function CreateInvoiceForm() {
-  const [open, setOpen] = useState<boolean>(false)
-  const router = useRouter()
-
-  const methods = useForm<CreateInvoiceFormData>({
-    resolver: zodResolver(createInvoiceSchema),
-    defaultValues: {
-      invoiceLineItems: [
-        {
-          lineItemId: generateRandomId(),
-          description: '',
-          quantity: 1,
-          unitPrice: 0,
-        },
-      ],
-    },
-  })
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = methods
-
-  const { data, isLoading, isError } = useQuery(['customers'], () =>
-    fetcher('/api/get-customers-list')
-  )
-
-  const mutation = useMutation({
-    mutationFn: (formData: any) => {
-      return fetch('/api/create-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-    },
-  })
-
-  async function _createInvoiceAction(data: CreateInvoiceFormData) {
-    const sendInvoice = await mutation.mutateAsync(data)
-    const result = await sendInvoice.json()
-    setOpen(false)
-    router.push(`/sales/invoices/${result}`)
-  }
+export default function CreateInvoiceForm({
+  customers,
+}: {
+  customers: Pick<Customer, "id" | "name" | "email">[];
+}) {
+  const [open, setOpen] = useState<boolean>(false);
+  const invoiceFormRef = useRef<any>();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -108,11 +58,17 @@ export default function CreateInvoiceForm() {
           <DialogTitle>Create New Invoice</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <FormProvider {...methods}>
+        <ErrorBoundaryComponent>
           <div className="relative p-10">
             <h2 className="font-display mb-4">New Invoice</h2>
             <form
-              onSubmit={handleSubmit(_createInvoiceAction)}
+              action={async (formData) => {
+                invoiceFormRef.current.reset;
+                await addInvoice(formData);
+
+                setOpen(false);
+              }}
+              ref={invoiceFormRef}
               className="flex flex-col gap-4"
             >
               {/* <CustomerCombobox error={actionData?.errors.customerId} /> */}
@@ -121,16 +77,13 @@ export default function CreateInvoiceForm() {
                   <label htmlFor="customers">
                     <LabelText>Customer</LabelText>
                   </label>
-                  {isLoading && <span>Loading...</span>}
-                  {data && (
-                    <select {...register('customerId')} id="customerId">
-                      {data?.customers?.map((customer: Customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  <select name="customerId" id="customerId">
+                    {customers?.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               {/* Replace all bracketed content with the combobox once that's figured out */}
@@ -142,7 +95,7 @@ export default function CreateInvoiceForm() {
                 </div>
                 <input
                   id="dueDate"
-                  {...register('invoiceDueDate')}
+                  name="dueDateString"
                   className={inputClasses}
                   type="date"
                   required
@@ -152,62 +105,49 @@ export default function CreateInvoiceForm() {
               <div>
                 <button
                   type="submit"
-                  {...register('intent')}
+                  name="intent"
                   value="create"
                   className={submitButtonClasses}
                 >
                   Create Invoice
                 </button>
-                {errors.intent && (
-                  <span className="text-red-600">{errors.intent.message}</span>
-                )}
               </div>
             </form>
           </div>
-        </FormProvider>
+        </ErrorBoundaryComponent>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function LineItems() {
-  const data = useFormContext()
-  const { fields, append, remove } = useFieldArray({
-    control: data.control,
-    name: 'invoiceLineItems',
-  })
+  const firstId = useId();
+  const [lineItems, setLineItems] = useState(() => [firstId]);
   return (
     <div className="flex flex-col gap-2">
-      {fields.map((field, index) => (
+      {lineItems.map((lineItemClientId, index) => (
         <LineItemFormFields
-          key={field.id}
-          lineItemClientId={field.id}
+          key={lineItemClientId}
+          lineItemClientId={lineItemClientId}
           index={index}
-          onRemoveClick={() => remove(index)}
+          onRemoveClick={() => {
+            setLineItems((lis) =>
+              lis.filter((id, i) => id !== lineItemClientId)
+            );
+          }}
         />
       ))}
       <div className="mt-3 text-right">
         <button
           title="Add Line Item"
           type="button"
-          onClick={() =>
-            append({
-              lineItems: [
-                {
-                  lineItemId: generateRandomId(),
-                  quantity: 1,
-                  unitPrice: 0,
-                  description: 'your new item added',
-                },
-              ],
-            })
-          }
+          onClick={() => setLineItems((lis) => [...lis, generateRandomId()])}
         >
           <PlusIcon />
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function LineItemFormFields({
@@ -215,12 +155,10 @@ function LineItemFormFields({
   index,
   onRemoveClick,
 }: {
-  lineItemClientId: string
-  index: number
-  onRemoveClick: () => void
+  lineItemClientId: string;
+  index: number;
+  onRemoveClick: () => void;
 }) {
-  const data = useFormContext()
-
   return (
     <fieldset key={lineItemClientId} className="border-b-2 py-2">
       <div className="flex gap-2">
@@ -229,12 +167,7 @@ function LineItemFormFields({
         </button>
         <legend>Line Item {index + 1}</legend>
       </div>
-      <input
-        value={lineItemClientId}
-        {...data.register(`invoiceLineItems.${index}.lineItemId`)}
-        type="hidden"
-      />
-
+      <input value={lineItemClientId} name="lineItemId" type="hidden" />
       <div className="flex flex-col gap-1">
         <div className="flex w-full gap-2">
           <div className="flex-1">
@@ -244,21 +177,12 @@ function LineItemFormFields({
                   Quantity:
                 </label>
               </LabelText>
-              {/* {errors?.quantity ? (
-                <em id="quantity-error" className="text-d-p-xs text-red-600">
-                  {errors.quantity}
-                </em>
-              ) : null} */}
             </div>
             <input
               id={`quantity-${lineItemClientId}`}
-              {...data.register(`invoiceLineItems.${index}.quantity`, {
-                valueAsNumber: true,
-              })}
+              name="quantity"
               type="number"
               className={inputClasses}
-              //   aria-invalid={Boolean(errors?.quantity) || undefined}
-              //   aria-errormessage={errors?.quantity ? 'name-error' : undefined}
             />
           </div>
           <div className="flex-1">
@@ -268,27 +192,14 @@ function LineItemFormFields({
                   Unit Price:
                 </label>
               </LabelText>
-              {/* {data.formState.errors?.unitPrice ? (
-                <em id="unitPrice-error" className="text-d-p-xs text-red-600">
-                  {data.formState.errors.unitPrice}
-                </em>
-              ) : null} */}
             </div>
             <input
               id={`unitPrice-${lineItemClientId}`}
-              {...data.register(`invoiceLineItems.${index}.unitPrice`, {
-                valueAsNumber: true,
-              })}
+              name="unitPrice"
               type="number"
               min="1"
               step="any"
               className={inputClasses}
-              aria-invalid={
-                Boolean(data.formState.errors?.unitPrice) || undefined
-              }
-              aria-errormessage={
-                data.formState.errors?.unitPrice ? 'name-error' : undefined
-              }
             />
           </div>
         </div>
@@ -300,11 +211,11 @@ function LineItemFormFields({
           </LabelText>
           <input
             id={`description-${lineItemClientId}`}
-            {...data.register(`invoiceLineItems.${index}.description`)}
+            name="description"
             className={inputClasses}
           />
         </div>
       </div>
     </fieldset>
-  )
+  );
 }

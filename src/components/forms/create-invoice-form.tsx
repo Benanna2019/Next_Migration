@@ -1,25 +1,26 @@
-import { useState, useId } from 'react'
+"use client";
+import { useState, useId } from "react";
 import {
   inputClasses,
   LabelText,
   PlusIcon,
   MinusIcon,
   submitButtonClasses,
-} from '@/components'
+} from "@/components";
 // import { CustomerCombobox } from "@/app/resources/customers";
-import { Customer } from '@/models/customerserver'
-import { useQuery } from '@tanstack/react-query'
+import { Customer } from "@/models/customerserver";
+import { useQuery } from "@tanstack/react-query";
 import {
   useForm,
   FormProvider,
   useFormContext,
   useFieldArray,
-} from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { useRouter } from 'next/router'
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
 
-const generateRandomId = () => Math.random().toString(32).slice(2)
+const generateRandomId = () => Math.random().toString(32).slice(2);
 
 export const createInvoiceSchema = z.object({
   customerId: z.string(),
@@ -33,57 +34,57 @@ export const createInvoiceSchema = z.object({
     })
   ),
   intent: z.string(),
-})
+});
 
-export type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>
+export type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>;
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function CreateInvoiceForm() {
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const methods = useForm<CreateInvoiceFormData>({
     resolver: zodResolver(createInvoiceSchema),
     defaultValues: {
       invoiceLineItems: [
         {
           lineItemId: generateRandomId(),
-          description: '',
+          description: "",
           quantity: 1,
           unitPrice: 0,
         },
       ],
     },
-  })
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = methods
+  } = methods;
 
-  const { data, isLoading, isError } = useQuery(['customers'], () =>
-    fetcher('/api/get-customers-list')
-  )
+  const { data, isLoading, isError } = useQuery(["customers"], () =>
+    fetcher("/api/customers")
+  );
 
-  const router = useRouter()
+  const router = useRouter();
 
   async function _createInvoiceAction(data: CreateInvoiceFormData) {
-    await new Promise((resolve) => setTimeout(resolve, 200))
-    setLoading(true)
-    const response = await fetch('/api/create-invoice', {
-      method: 'POST',
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    setLoading(true);
+    const response = await fetch("/api/invoices", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    })
-    const result = await response.json()
-    console.log('result', result)
+    });
+    const result = await response.json();
+    console.log("result", result);
     if (result.status !== 200) {
-      setError(null)
+      setError(null);
     }
-    router.push(`/sales/invoices/${result}`)
+    router.push(`/sales/invoices/${result}`);
   }
 
   return (
@@ -102,7 +103,7 @@ export default function CreateInvoiceForm() {
               </label>
               {isLoading && <span>Loading...</span>}
               {data && (
-                <select {...register('customerId')} id="customerId">
+                <select {...register("customerId")} id="customerId">
                   {data?.customers?.map((customer: Customer) => (
                     <option key={customer.id} value={customer.id}>
                       {customer.name}
@@ -121,7 +122,7 @@ export default function CreateInvoiceForm() {
             </div>
             <input
               id="dueDate"
-              {...register('invoiceDueDate')}
+              {...register("invoiceDueDate")}
               className={inputClasses}
               type="date"
               required
@@ -131,7 +132,7 @@ export default function CreateInvoiceForm() {
           <div>
             <button
               type="submit"
-              {...register('intent')}
+              {...register("intent")}
               value="create"
               className={submitButtonClasses}
             >
@@ -144,15 +145,15 @@ export default function CreateInvoiceForm() {
         </form>
       </div>
     </FormProvider>
-  )
+  );
 }
 
 function LineItems() {
-  const data = useFormContext()
+  const data = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control: data.control,
-    name: 'invoiceLineItems',
-  })
+    name: "invoiceLineItems",
+  });
   return (
     <div className="flex flex-col gap-2">
       {fields.map((field, index) => (
@@ -174,7 +175,7 @@ function LineItems() {
                   lineItemId: generateRandomId(),
                   quantity: 1,
                   unitPrice: 0,
-                  description: 'your new item added',
+                  description: "your new item added",
                 },
               ],
             })
@@ -184,7 +185,7 @@ function LineItems() {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function LineItemFormFields({
@@ -192,11 +193,11 @@ function LineItemFormFields({
   index,
   onRemoveClick,
 }: {
-  lineItemClientId: string
-  index: number
-  onRemoveClick: () => void
+  lineItemClientId: string;
+  index: number;
+  onRemoveClick: () => void;
 }) {
-  const data = useFormContext()
+  const data = useFormContext();
 
   return (
     <fieldset key={lineItemClientId} className="border-b-2 py-2">
@@ -264,7 +265,7 @@ function LineItemFormFields({
                 Boolean(data.formState.errors?.unitPrice) || undefined
               }
               aria-errormessage={
-                data.formState.errors?.unitPrice ? 'name-error' : undefined
+                data.formState.errors?.unitPrice ? "name-error" : undefined
               }
             />
           </div>
@@ -283,5 +284,5 @@ function LineItemFormFields({
         </div>
       </div>
     </fieldset>
-  )
+  );
 }
